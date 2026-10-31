@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNEAKEN. | Mendoza Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}">
+
+    <!-- Top Announcement Bar -->
+    <div class="top-bar">
+        <div class="top-bar-container">
+            <span><i class="fa-solid fa-truck-fast"></i> ENVÍOS GRATIS DESDE $99.999 &nbsp;|&nbsp; <i class="fa-solid fa-credit-card"></i> 6 CUOTAS SIN INTERÉS CON TODOS LOS BANCOS</span>
+            <span class="top-bar-right">
+                <a href="#" onclick="abrirModalContactoMapa()"><i class="fa-solid fa-location-dot"></i> Sucursal Mendoza</a>
+                <button id="currency-toggle-btn" class="currency-btn" onclick="toggleMoneda()">MONEDA: <strong>ARS</strong> USD</button>
+            </span>
+        </div>
+    </div>
+
+    <!-- Header / Navbar (Con Código Postal integrado prolijamente entre Guía Talles y Buscador) -->
+    <header class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="logo" onclick="filtrarCategoria('todas')">
+                <div class="logo-icon"><i class="fa-solid fa-shoe-prints"></i></div>
+                <div class="logo-text">
+                    <span class="brand-name">SNEAKEN<span class="dot">.</span></span>
+                    <span class="brand-sub">STORE MENDOZA</span>
+                </div>
+            </a>
+
+            <nav class="nav-menu">
+                <a href="#" onclick="filtrarCategoria('todas')" class="nav-link active" id="nav-todas">Ver Todo</a>
+                <a href="#" onclick="filtrarCategoria('Hombre')" class="nav-link" id="nav-hombre">Hombre</a>
+                <a href="#" onclick="filtrarCategoria('Mujer')" class="nav-link" id="nav-mujer">Mujer</a>
+                <a href="#" onclick="filtrarCategoria('Kids')" class="nav-link" id="nav-kids">Kids</a>
+                <a href="#" onclick="abrirModalCalculadoraTalle()" class="nav-link guialink"><i class="fa-solid fa-ruler-horizontal"></i> Guía Talles</a>
+            </nav>
+
+            <!-- Widget compacto de Código Postal ubicado entre Guía de Talles y el Buscador -->
+            <div class="cp-nav-pill" onclick="solicitarCodigoPostal(true)" title="Cambiar Código Postal">
+                <i class="fa-solid fa-location-crosshairs"></i>
+                <span id="ubicacionActualText">CP: <strong>5500</strong></span>
+            </div>
+
+            <div class="nav-actions">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="inputBuscador" placeholder="Buscar zapatillas..." onkeyup="ejecutarBusqueda()">
+                </div>
+
+                <div class="action-btn theme-toggle-circle" onclick="toggleTema()" title="Cambiar Tema">
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+
+                <div class="action-btn auth-pill" onclick="abrirModalAuth()" title="Mi Cuenta">
+                    <i class="fa-regular fa-user"></i>
+                    <span id="labelUsuario">Ingresar</span>
+                </div>
+
+                
+
+                <div class="action-btn cart-pill" onclick="togglePanelCarrito()" title="Ver Carrito">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="contadorCarrito" class="badge">0</span>
+                </div>
+            <!-- Slide-over Wishlist / Favoritos Panel (Idéntico al panel del carrito) -->
+            <div id="panelFavoritos" class="panel-carrito">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-heart" style="color: #ef4444;"></i> Mis Favoritos (<span id="panelFavCount">0</span>)</h3>
+                    <span class="cerrar-panel" onclick="togglePanelFavoritos()">&times;</span>
+                </div>
+                <div class="panel-body" id="listaFavoritosPanel"></div>
+                <div class="panel-footer">
+                    <button class="btn-checkout" onclick="togglePanelFavoritos()" style="background: #2563eb;">
+                        <i class="fa-solid fa-arrow-left"></i> Volver al Catálogo
+                    </button>
+                </div>
+            </div>
+            <div id="overlayFavoritos" class="overlay" onclick="togglePanelFavoritos()"></div>
+            </div>
+            <div class="action-btn fav-pill" onclick="togglePanelFavoritos()" title="Favoritos">
+    <i class="fa-regular fa-heart"></i>
+    <span id="contadorFavoritos" class="badge">0</span>
+</div>
+        </div>
+    </header>
+
+    <!-- Promotional Sub-Header -->
+    <section class="promo-strip">
+        <span>⚽🔥 <strong>HASTA 15% OFF EN ZAPATILLAS SELECCIONADAS</strong> &nbsp;&nbsp;|&nbsp;&nbsp; 🚚 ENVÍOS GRATIS A TODO EL PAÍS</span>
+    </section>
+
+    <!-- Main Container -->
+    <main class="main-wrapper">
+        <!-- Banner Carousel (Visible solo en modo Catálogo, se oculta al ver detalle) -->
+        <section class="hero-slider" id="seccionHeroBanner">
+            <div class="slides">
+                <img src="{{ url_for('static', filename='imagenes/portada.png') }}" class="slide active" alt="Portada 1" onerror="this.src='https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=1200&q=80'">
+                <img src="{{ url_for('static', filename='imagenes/portada13.jpg') }}" class="slide" alt="Portada 2" onerror="this.src='https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80'">
+                <img src="{{ url_for('static', filename='imagenes/portadakid2.jpg') }}" class="slide" alt="Portada 3" onerror="this.src='https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=1200&q=80'">
+                <img src="{{ url_for('static', filename='imagenes/portada12.jpg') }}" class="slide" alt="Portada 4" onerror="this.src='https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=1200&q=80'">
+                <img src="{{ url_for('static', filename='imagenes/portada14.jpeg') }}" class="slide" alt="Portada 5" onerror="this.src='https://images.unsplash.com/photo-1460353581641-37babbab0fa2?auto=format&fit=crop&w=1200&q=80'">
+            </div>
+        </section>
+
+        <!-- Catalog View -->
+        <div id="vista-catalogo">
+            <div class="catalog-header">
+                <div class="catalog-title-group">
+                    <h2 id="tituloSeccion">Catálogo Completo</h2>
+                </div>
+
+                <div class="filter-controls">
+                    <label for="selectOrden"><i class="fa-solid fa-arrow-down-short-wide"></i> ORDENAR POR:</label>
+                    <select id="selectOrden" onchange="ordenarProductos(this.value)">
+                        <option value="destacados">Relevancia</option>
+                        <option value="menor-precio">Menor Precio</option>
+                        <option value="mayor-precio">Mayor Precio</option>
+                        <option value="nombre">Nombre (A - Z)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="productos-grid" id="contenedorProductos"></div>
+        </div>
+
+        <!-- Product Detail View -->
+        <div id="vista-detalle" style="display: none;">
+            <button onclick="volverAlCatalogo()" class="volver-btn"><i class="fa-solid fa-arrow-left"></i> VOLVER AL CATÁLOGO</button>
+
+            <section class="detalle-producto">
+                <div class="detalle-visual">
+                    <div class="imagen-principal-container">
+                        <img src="" alt="Zapatilla Seleccionada" id="fotoPrincipal">
+                    </div>
+                </div>
+
+                <div class="detalle-info">
+                    <div class="encabezado-detalle">
+                        <span class="subtop" id="detalle-categoria">PREMIUM SNEAKERS</span>
+                        <button class="corazon-favorito" id="btnFavoritoDetalle" onclick="toggleFavoritoDetalle()"><i class="fa-regular fa-heart"></i></button>
+                    </div>
+                    
+                    <h1 id="detalle-titulo">Zapatilla</h1>
+                    <p class="sku" id="detalle-sku">SKU: SNK-H02</p>
+
+                    <div class="precios-box-destacado">
+                        <span class="precio-viejo-det">$120.000</span>
+                        <span id="detalle-precio" class="precio-actual-det">$ 100.000</span>
+                    </div>
+                    
+                    <p id="detalle-cuotas" class="cuotas-info">6 x $16.666 s/int.</p>
+
+                    <div class="seccion-talles">
+                        <div class="talles-header-row">
+                            <p class="talles-label">SELECCIONAR TALLE (ARG):</p>
+                            <a href="#" onclick="abrirModalCalculadoraTalle()" class="link-guia-talles">¿Cuál es mi talle?</a>
+                        </div>
+                        <div class="talles-grid" id="tallesGrid">
+                            <button class="talle-btn" onclick="seleccionarTalle(this)">35</button>
+                            <button class="talle-btn" onclick="seleccionarTalle(this)">36</button>
+                            <button class="talle-btn" onclick="seleccionarTalle(this)">37</button>
+                            <button class="talle-btn" onclick="seleccionarTalle(this)">38</button>
+                            <button class="talle-btn" onclick="seleccionarTalle(this)">39</button>
+                            <button class="talle-btn seleccionado" onclick="seleccionarTalle(this)">40</button>
+                            <button class="talle-btn" onclick="seleccionarTalle(this)">41</button>
+                            <button class="talle-btn" onclick="seleccionarTalle(this)">42</button>
+                            <button class="talle-btn" onclick="seleccionarTalle(this)">43</button>
+                            <button class="talle-btn" onclick="seleccionarTalle(this)">44</button>
+                        </div>
+                    </div>
+
+                    <div class="cantidad-label-row">
+                        <span>CANTIDAD:</span>
+                    </div>
+
+                    <div class="compra-acciones">
+                        <div class="contador-cantidad">
+                            <button onclick="cambiarCantidadDetalle(-1)">-</button>
+                            <input type="number" id="cantidadInput" value="1" min="1" readonly>
+                            <button onclick="cambiarCantidadDetalle(1)">+</button>
+                        </div>
+                        
+                        <button class="agregar-carrito-btn" onclick="agregarAlCarritoDesdeDetalle()">
+                            <i class="fa-solid fa-cart-shopping"></i> AGREGAR AL CARRITO
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Slide-over Shopping Cart Panel -->
+    <div id="panelCarrito" class="panel-carrito">
+        <div class="panel-header">
+            <h3><i class="fa-solid fa-bag-shopping"></i> Mi Carrito (<span id="panelCartCount">0</span>)</h3>
+            <span class="cerrar-panel" onclick="togglePanelCarrito()">&times;</span>
+        </div>
+        <div class="panel-body" id="listaCarrito"></div>
+        <div class="panel-footer">
+            <div class="cart-total-row">
+                <span>Total:</span>
+                <strong id="totalCarritoTexto">$0</strong>
+            </div>
+            <button class="btn-checkout" onclick="iniciarCheckout()"><i class="fa-solid fa-lock"></i> Finalizar Compra</button>
+        </div>
+    </div>
+    <div id="overlayCarrito" class="overlay" onclick="togglePanelCarrito()"></div>
+
+    <!-- Chatbot Assistant (Con botón de cierre estilizado y elegante) -->
+    <div id="chatbot-wrapper" class="chatbot-wrapper">
+        <div id="chatbot-window" class="chatbot-window" style="display: none;">
+            <div class="chatbot-header">
+                <div class="chatbot-avatar"><i class="fa-solid fa-robot"></i></div>
+                <div class="chatbot-info">
+                    <h4>Asistente SNEAKEN</h4>
+                    <span class="status-online">● En línea</span>
+                </div>
+                <button class="cerrar-bot-elegante" onclick="toggleChatbot()" title="Cerrar Asistente">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="chatbot-messages" id="chatMessages">
+                <div class="msg msg-bot">¡Hola! 👋 Soy el asistente virtual de SNEAKEN. ¿En qué puedo ayudarte hoy?</div>
+            </div>
+            <div class="chatbot-quick-options">
+                <button onclick="enviarMensajeRapido('Talles')">📏 Talles</button>
+                <button onclick="enviarMensajeRapido('Envíos')">🚚 Envíos</button>
+                <button onclick="enviarMensajeRapido('Cuotas')">💳 Cuotas</button>
+                <button onclick="abrirWhatsappDirecto()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+            </div>
+            <div class="chatbot-input-area">
+                <input type="text" id="chatInput" placeholder="Escribe tu consulta..." onkeypress="evaluarEnterChat(event)">
+                <button onclick="enviarMensajeChat()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+        <button id="chatbot-toggle-btn" class="chatbot-btn" onclick="toggleChatbot()">
+            <i class="fa-solid fa-comments"></i>
+            <span class="chat-badge">1</span>
+        </button>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalCP" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-truck-ramp-box"></i> Ubicación de Entrega</h3>
+            </div>
+            <div class="modal-body">
+                <p>Ingresá tu Código Postal para calcular costos y tiempos:</p>
+                <div class="input-group">
+                    <input type="text" id="inputCodigoPostal" placeholder="Ej: 5500">
+                    <button onclick="guardarCodigoPostal()"><i class="fa-solid fa-check"></i> Verificar</button>
+                </div>
+                <p id="errorCP" class="text-danger" style="display:none; font-size: 13px; margin-top: 5px;">Por favor ingresá un CP válido.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalMapa" class="modal-backdrop" style="display: none;">
+        <div class="modal-card modal-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-store"></i> Sucursal & Ubicación Real</h3>
+                <span class="cerrar-modal" onclick="cerrarModalContactoMapa()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="map-info-cards">
+                    <div class="info-card">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <div>
+                            <strong>Dirección:</strong>
+                            <p>Av. San Martín 1174, Mendoza Capital</p>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <div>
+                            <strong>Teléfono / WhatsApp:</strong>
+                            <p><a href="https://wa.me/5492613735751" target="_blank" class="wspp-link">+54 9 2613735751</a></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mapa-frame-container">
+                    <iframe src="https://maps.google.com/maps?q=Av.+San+Mart%C3%ADn+1174,+Mendoza,+Argentina&t=&z=16&ie=UTF8&iwloc=&output=embed" width="100%" height="320" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalCalculadoraTalle" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-ruler-combined"></i> Calculadora de Talle Perfecto</h3>
+                <span class="cerrar-modal" onclick="cerrarModalCalculadoraTalle()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Medí el largo de tu pie en centímetros:</p>
+                <div class="calc-input-box">
+                    <label for="largoPieCm">Largo del pie (cm):</label>
+                    <input type="number" id="largoPieCm" placeholder="Ej: 25.5" step="0.5" min="15" max="35">
+                    <button onclick="calcularTalleExacto()">Calcular Talle</button>
+                </div>
+                <div id="resultadoTalle" class="calc-result" style="display: none;">
+                    <h4>Talle sugerido: <span id="talleCalculadoValor">-</span> ARG</h4>
+                    <p class="subtext">Equivale a <span id="talleUSValor">-</span> US | <span id="talleEUValor">-</span> EU</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalAuth" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="auth-tabs">
+                    <button id="tabLogin" class="active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+                    <button id="tabRegister" onclick="switchAuthTab('register')">Registrarse</button>
+                </div>
+                <span class="cerrar-modal" onclick="cerrarModalAuth()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="formLogin" onsubmit="procesarLogin(event)" style="display: block;">
+                    {{ login_form.hidden_tag() }}
+                    <div class="form-group">
+                        <label>Correo Electrónico</label>
+                        {{ login_form.email(class="form-control", id="login_email", placeholder="tu@email.com") }}
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        {{ login_form.password(class="form-control", id="login_password", placeholder="******") }}
+                    </div>
+                    <button type="submit" class="btn-primary-block"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+                </form>
+
+                <form id="formRegister" onsubmit="procesarRegistro(event)" style="display: none;">
+                    {{ register_form.hidden_tag() }}
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        {{ register_form.nombre(class="form-control", id="reg_nombre", placeholder="Ej: Juan Pérez") }}
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Electrónico</label>
+                        {{ register_form.email(class="form-control", id="reg_email", placeholder="tu@email.com") }}
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        {{ register_form.password(class="form-control", id="reg_password", placeholder="******") }}
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmar Contraseña</label>
+                        {{ register_form.confirm_password(class="form-control", id="reg_confirm", placeholder="******") }}
+                    </div>
+                    <button type="submit" class="btn-primary-block"><i class="fa-solid fa-user-plus"></i> Crear Cuenta</button>
+                </form>
+                <p id="authMessage" class="auth-msg" style="display: none;"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalCheckout" class="modal-backdrop" style="display: none;">
+        <div class="modal-card modal-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-shield-halved"></i> Pasarela de Pago Segura</h3>
+                <span class="cerrar-modal" onclick="cerrarModalCheckout()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="formCheckout" onsubmit="procesarPago(event)">
+                    {{ checkout_form.hidden_tag() }}
+                    <div class="checkout-layout">
+                        <div class="card-visual-preview">
+                            <div class="credit-card" id="creditCardVisual">
+                                <div class="card-chip"><i class="fa-solid fa-microchip"></i></div>
+                                <div class="card-brand" id="cardBrandLogo"><i class="fa-brands fa-cc-visa"></i></div>
+                                <div class="card-number" id="cardVisualNumber">•••• •••• •••• ••••</div>
+                                <div class="card-footer-info">
+                                    <div class="card-holder" id="cardVisualHolder">NOMBRE TITULAR</div>
+                                    <div class="card-exp" id="cardVisualExp">MM/AA</div>
+                                </div>
+                            </div>
+                            <div class="accepted-cards">
+                                <span>Tarjetas Aceptadas:</span>
+                                <div class="card-icons">
+                                    <i class="fa-brands fa-cc-visa" title="Visa"></i>
+                                    <i class="fa-brands fa-cc-mastercard" title="Mastercard"></i>
+                                    <i class="fa-brands fa-cc-amex" title="American Express"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-inputs-form">
+                            <div class="form-group">
+                                <label>Nombre en la tarjeta</label>
+                                {{ checkout_form.nombre_titular(class="form-control", id="pay_name", placeholder="Como figura en el plástico", oninput="actualizarPlastico()") }}
+                            </div>
+                            <div class="form-group">
+                                <label>Número de Tarjeta</label>
+                                {{ checkout_form.numero_tarjeta(class="form-control", id="pay_number", placeholder="4500 0000 0000 0000", maxlength="19", oninput="actualizarPlastico()") }}
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label>Vencimiento</label>
+                                    {{ checkout_form.expiracion(class="form-control", id="pay_exp", placeholder="12/28", maxlength="5", oninput="actualizarPlastico()") }}
+                                </div>
+                                <div class="form-group">
+                                    <label>CVV</label>
+                                    {{ checkout_form.cvv(class="form-control", id="pay_cvv", placeholder="123", maxlength="4") }}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Cuotas disponibles</label>
+                                {{ checkout_form.cuotas(class="form-control", id="pay_cuotas") }}
+                            </div>
+                            <div class="summary-checkout-box">
+                                <div class="summary-line">
+                                    <span>Total a Pagar:</span>
+                                    <strong id="payTotalAmount">$ 0 ARS</strong>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-pay-now"><i class="fa-solid fa-lock"></i> Confirmar Pago Seguro</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="pie-pagina">
+        <div class="footer-contenedor">
+            <div class="footer-columna">
+                <div class="footer-logo-area" style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <div class="logo-icon" style="width: 35px; height: 35px; background: #2563eb; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-shoe-prints"></i></div>
+                    <h3 style="margin: 0; color: white; font-size: 18px;">SNEAKEN SHOP</h3>
+                </div>
+                <p style="color: #94a3b8; font-size: 13.5px; line-height: 1.5;">Tu tienda favorita de calzado urbano y deportivo en Mendoza. Envíos garantizados a todo el país.</p>
+                <div class="redes-sociales" style="margin-top: 15px; display: flex; gap: 12px; color: #94a3b8; font-size: 18px; cursor: pointer;">
+                    <span><i class="fa-brands fa-instagram"></i></span>
+                    <span><i class="fa-brands fa-facebook"></i></span>
+                    <span><i class="fa-brands fa-whatsapp"></i></span>
+                </div>
+            </div>
+
+            <div class="footer-columna">
+                <h3>CATEGORÍAS</h3>
+                <ul>
+                    <li><a href="#" onclick="filtrarCategoria('Hombre')">Calzado Hombre</a></li>
+                    <li><a href="#" onclick="filtrarCategoria('Mujer')">Calzado Mujer</a></li>
+                    <li><a href="#" onclick="filtrarCategoria('Kids')">Calzado Kids</a></li>
+                    <li><a href="#" onclick="abrirModalCalculadoraTalle()">Guía de Talles</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-columna">
+                <h3>MEDIOS DE PAGO</h3>
+                <p style="color: #94a3b8; font-size: 12.5px; margin-bottom: 10px;">Cuotas sin interés y promociones bancarias vigentes:</p>
+                <div class="footer-badges" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <span style="background: #1e3a8a; color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">VISA</span>
+                    <span style="background: #c2410c; color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">MASTERCARD</span>
+                    <span style="background: #0369a1; color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">CABAL</span>
+                    <span style="background: #ca8a04; color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">MERCADOPAGO</span>
+                    <span style="background: #ea580c; color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">NARANJA X</span>
+                </div>
+            </div>
+
+            <div class="footer-columna">
+                <h3>SUCURSAL MENDOZA</h3>
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 8px;"><i class="fa-solid fa-location-dot" style="color: #38bdf8;"></i> Av. San Martín 1174, Mendoza Capital</p>
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;"><i class="fa-solid fa-clock" style="color: #38bdf8;"></i> Lun-Sáb: 09:00 a 13:00 / 17:00 a 21:00 hs</p>
+                <button onclick="abrirModalContactoMapa()" style="background: #1e293b; color: #38bdf8; border: 1px solid #334155; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;"><i class="fa-solid fa-map-location-dot"></i> Ver Sucursal en Mapa Real</button>
+            </div>
+        </div>
+
+        <div class="footer-derechos" style="display: flex; justify-content: space-between; align-items: center; max-width: 1250px; margin: 30px auto 0 auto; padding-top: 20px; border-top: 1px solid #1e293b; font-size: 12.5px; color: #64748b;">
+            <p>&copy; 2026 Sneaken Shop. Todos los derechos reservados.</p>
+            <p>Contacto Directo (<a href="https://wa.me/5492613735751" target="_blank" style="color: #38bdf8; text-decoration: none;">+54 9 261 373-5751</a>)</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
